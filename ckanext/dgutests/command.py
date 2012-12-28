@@ -8,8 +8,10 @@ import subprocess
 import inspect
 import pkgutil
 import atexit
-from optparse import OptionParser
+import collections
 
+from optparse import OptionParser
+from selenium import webdriver, selenium
 from ckan.lib.cli import CkanCommand
 
 logging.basicConfig(level=logging.INFO,format='%(asctime)s %(levelname)s: %(message)s')
@@ -65,31 +67,31 @@ class TestRunner(CkanCommand):
             "selenium-server-standalone-2.28.0.jar"))
 
     def run_task(self):
-        selenium = self.options.selenium_url or self._run_selenium()
-
-        from selenium import webdriver, selenium
-        browser = webdriver.Firefox()
+        selenium_url = self.options.selenium_url or self._run_selenium()
 
         # For all functions in ckanext/dgutests/tests we should run them and pass
         # in the browser
-        self.selenium = selenium("localhost",4444,"*firefox", "http://localhost:5000/data")
+        self.selenium = selenium("127.0.0.1",4444,"*firefox", "http://localhost:5000/data")
         self.selenium.start()
-        #atexit.register(self.selenium.stop())
+
+        error_dict = collections.defaultdict(list)
 
         import ckanext.dgutests.tests
         for name,cls in inspect.getmembers(sys.modules["ckanext.dgutests.tests"], inspect.isclass):
-            methods = [name for (name,_) in
-                inspect.getmembers(cls, predicate=inspect.ismethod) if name.startswith('test_')]
+            methods = [nm for (nm,_) in
+                inspect.getmembers(cls, predicate=inspect.ismethod) if nm.startswith('test_')]
             if not methods:
                 continue
 
             instance = cls(self.selenium)
-            for name in methods:
+            for method_name in methods:
                 try:
-                    getattr(instance, name)()
+                    getattr(instance, method_name)()
                 except Exception as e:
+                    error_dict["%s.%s" % (name,method_name)].append(e)
                     log.error(e)
                 except AssertionError as b:
+                    error_dict["%s.%s" % (name,method_name)].append(b)
                     log.error(b)
 
 
@@ -99,6 +101,11 @@ class TestRunner(CkanCommand):
             log.info("Closing down our local selenium server")
             self.selenium_process.kill()
 
+        for k,v in error_dict.iteritems():
+            print k
+            print '*' * 30
+            for i in v:
+                print i
 
     def _run_selenium(self):
         """ command is self._run_selenium() """

@@ -8,3 +8,7 @@ class NavigationTests(t.TestBase):
         self.selenium.click("link=Publishers")
         time.sleep(1)
         assert 'Publishers' in self.selenium.get_title(), "Title was %s and not Publishers" % self.selenium.get_title()
+
+        self.selenium.click("link=Tags")
+        time.sleep(1)
+        assert 'Tags' in self.selenium.get_title(), "Title was %s and not Tags" % self.selenium.get_title()
