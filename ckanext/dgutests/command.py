@@ -40,6 +40,9 @@ class TestRunner(CkanCommand):
         self.parser.add_option("-s", "--selenium",
                   type="string", dest="selenium_url",
                   help="Specify the selenium url")
+        self.parser.add_option("-t", "--target",
+                  type="string", dest="target_url",
+                  help="Specify the server url")
 
     def command(self):
         log.info("Created TestRunner")
@@ -67,11 +70,16 @@ class TestRunner(CkanCommand):
             "selenium-server-standalone-2.28.0.jar"))
 
     def run_task(self):
+        import urlparse
+
         selenium_url = self.options.selenium_url or self._run_selenium()
+        target_url = self.options.target_url or "http://localhost:5000/data"
+        obj = urlparse.urlparse(selenium_url)
+
 
         # For all functions in ckanext/dgutests/tests we should run them and pass
         # in the browser
-        self.selenium = selenium("127.0.0.1",4444,"*firefox", "http://localhost:5000/data")
+        self.selenium = selenium(obj.hostname, obj.port, "*firefox", target_url)
         self.selenium.start()
 
         error_dict = collections.defaultdict(list)
