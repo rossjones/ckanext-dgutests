@@ -9,8 +9,9 @@ class TestBase(object):
         http://selenium.googlecode.com/svn/trunk/docs/api/py/selenium/selenium.selenium.html
         """
 
-    def __init__(self, selenium):
+    def __init__(self, selenium, config):
         self.selenium = selenium
+        self.config = config
         super(TestBase, self).__init__()
 
     def wait(self, max_wait=10):

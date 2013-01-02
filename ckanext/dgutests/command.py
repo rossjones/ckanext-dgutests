@@ -98,7 +98,12 @@ class TestRunner(CkanCommand):
             if not methods:
                 continue
 
-            instance = cls(self.selenium)
+            # Get config for test name
+            cfg = {}
+            if self.config.has_section(name):
+                cfg = dict([(k,v,) for k,v in self.config.items(name)])
+
+            instance = cls(self.selenium, cfg)
             for method_name in methods:
                 try:
                     getattr(instance, method_name)()
