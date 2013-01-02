@@ -9,6 +9,7 @@ import inspect
 import pkgutil
 import atexit
 import collections
+import ConfigParser
 
 from optparse import OptionParser
 from selenium import webdriver, selenium
@@ -43,6 +44,9 @@ class TestRunner(CkanCommand):
         self.parser.add_option("-t", "--target",
                   type="string", dest="target_url",
                   help="Specify the server url")
+        self.parser.add_option("--configfile",
+                  type="string", dest="config_file",
+                  help="Specifies the configuration file")
 
     def command(self):
         log.info("Created TestRunner")
@@ -57,6 +61,9 @@ class TestRunner(CkanCommand):
         if not os.path.exists(self.selenium_home):
             log.info("Creating selenium home directory")
             os.makedirs(self.selenium_home)
+
+        self.config = ConfigParser.ConfigParser()
+        self.config.readfp(open(self.options.config_file or "dgutest.ini"))
 
         getattr(self, '%s_task' % cmd)()
 
@@ -86,8 +93,6 @@ class TestRunner(CkanCommand):
 
         import ckanext.dgutests.tests
         for name,cls in inspect.getmembers(sys.modules["ckanext.dgutests.tests"], inspect.isclass):
-            #if not name == 'MapPreviewTests':
-            #    continue
             methods = [nm for (nm,_) in
                 inspect.getmembers(cls, predicate=inspect.ismethod) if nm.startswith('test_')]
             if not methods:
@@ -154,5 +159,4 @@ class TestRunner(CkanCommand):
                 status = r"%10d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
                 status = status + chr(8)*(len(status)+1)
                 print status,
-
 
