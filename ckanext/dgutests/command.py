@@ -86,8 +86,8 @@ class TestRunner(CkanCommand):
 
         import ckanext.dgutests.tests
         for name,cls in inspect.getmembers(sys.modules["ckanext.dgutests.tests"], inspect.isclass):
-            if not name == 'SearchTests':
-                continue
+            #if not name == 'MapPreviewTests':
+            #    continue
             methods = [nm for (nm,_) in
                 inspect.getmembers(cls, predicate=inspect.ismethod) if nm.startswith('test_')]
             if not methods:

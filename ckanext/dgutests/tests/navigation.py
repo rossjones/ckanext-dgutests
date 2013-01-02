@@ -4,12 +4,13 @@ import ckanext.dgutests.testbase as t
 class NavigationTests(t.TestBase):
 
     def test_basic_nav(self):
-        self.selenium.open('http://localhost:5000/data')
+        self.selenium.open('/data')
         # Make sure we have a number, and it should ideally be bigger than ~8000
         # on sites using live data.
         int(self.selenium.get_text("class=result-count"))
 
     def test_nav_publishers(self):
+        self.selenium.open('/data')
         self.selenium.click("link=Publishers")
         self.wait()
         assert 'Publishers' in self.selenium.get_title(), "Title was %s and not Publishers" % self.selenium.get_title()
@@ -27,7 +28,7 @@ class NavigationTests(t.TestBase):
             "There are no search results for publishers"
 
         self.fill_form("id=publisher-search", {'q': 'national statistics' })
-        #self.selenium.click('css=input[type="submit"]')
+        import time; time.sleep(3)
         assert int(self.selenium.get_text("class=result-count")) > 1, \
             "Could not find the office for national statistics"
 
@@ -35,13 +36,13 @@ class NavigationTests(t.TestBase):
         self.selenium.click("link=O")
         self.selenium.click("link=Office for Civil Society")
         self.wait()
-        assert "Office for Civil Society - CKAN" == self.selenium.get_title(),\
-            "Title was not 'Office for Civil Society - CKAN'"
-
+        assert "Office for Civil Society" in self.selenium.get_title(),\
+            "Title was not 'Office for Civil Society'"
 
     def test_nav_tags(self):
         # The Tags page is painfully slow, and so we should find a better to
         # wait for the page load to complete.
+        self.selenium.open('/data')
         self.selenium.click("link=Tags")
         self.wait()
         assert 'Tags' in self.selenium.get_title(), "Title was %s and not Tags" % self.selenium.get_title()
@@ -52,6 +53,7 @@ class NavigationTests(t.TestBase):
         assert count > 0, "There were no results for a tag"
 
     def test_nav_site_usage(self):
+        self.selenium.open('/data')
         self.selenium.click("link=Data")
         self.wait()
 
