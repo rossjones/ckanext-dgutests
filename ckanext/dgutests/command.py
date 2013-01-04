@@ -91,21 +91,31 @@ class TestRunner(CkanCommand):
 
         error_dict = collections.defaultdict(list)
 
+        base_cfg = dict([(k,v,) for k,v in self.config.items("*")])
+
+        class_count, method_count = (0, 0,)
+
         import ckanext.dgutests.tests
         for name,cls in inspect.getmembers(sys.modules["ckanext.dgutests.tests"], inspect.isclass):
+            if name != 'LoginTests':
+                continue
+
+            class_count += 1
             methods = [nm for (nm,_) in
                 inspect.getmembers(cls, predicate=inspect.ismethod) if nm.startswith('test_')]
             if not methods:
                 continue
 
             # Get config for test name
-            cfg = {}
+            cfg = base_cfg.copy()
             if self.config.has_section(name):
-                cfg = dict([(k,v,) for k,v in self.config.items(name)])
+                cfg.update(dict([(k,v,) for k,v in self.config.items(name)]))
 
+            # Build an instance of the test class and call each test method
             instance = cls(self.selenium, cfg)
             for method_name in methods:
                 try:
+                    method_count += 1
                     getattr(instance, method_name)()
                 except Exception as e:
                     error_dict["%s.%s" % (name,method_name)].append(e)
@@ -120,6 +130,8 @@ class TestRunner(CkanCommand):
         if self.selenium_process:
             log.info("Closing down our local selenium server")
             self.selenium_process.kill()
+
+        log.info("Ran %d tests in %d classes" % (method_count, class_count,))
 
         for k,v in error_dict.iteritems():
             print k
